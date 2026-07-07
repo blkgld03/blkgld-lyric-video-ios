@@ -33,13 +33,21 @@ struct ContentView: View {
         }
         .fileImporter(
             isPresented: $showPicker,
-            // `.audio` alone can be too strict in the Files picker for some real-world
-            // files (greys them out even when the format is standard) — list common
-            // audio UTTypes explicitly, plus `.audio` as a catch-all.
-            allowedContentTypes: [.audio, .mp3, .wav, .aiff, .mpeg4Audio]
+            // UTType conformance filtering (.audio, .mpeg4Audio, etc.) proved
+            // unreliable against a real MPEG-4 file in the Files app — files simply
+            // didn't respond to tap, with no error to debug from. Allowing any item
+            // and validating the extension after selection sidesteps guessing
+            // Apple's UTI conformance chain entirely.
+            allowedContentTypes: [.item]
         ) { result in
             switch result {
             case .success(let url):
+                let audioExtensions = ["mp3", "wav", "m4a", "aac", "aiff", "flac", "caf", "mp4"]
+                let ext = url.pathExtension.lowercased()
+                guard audioExtensions.contains(ext) else {
+                    DebugLog.shared.add("Rejected: \(url.lastPathComponent) — .\(ext) not a recognized audio extension")
+                    return
+                }
                 if url.startAccessingSecurityScopedResource() {
                     pickedURL = url
                     DebugLog.shared.add("Picked: \(url.lastPathComponent)")
@@ -64,6 +72,9 @@ struct ContentView: View {
             Text("Phase 1 · on-device transcription")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(gold)
+            Text("build \(BuildInfo.commit) · \(BuildInfo.builtAt)")
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundColor(.gray)
         }
         .padding(.top, 40)
     }

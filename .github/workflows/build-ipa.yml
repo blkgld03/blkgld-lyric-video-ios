@@ -34,6 +34,19 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      # Kills "which build is actually on my phone?" ambiguity for good — the
+      # short commit SHA + build time render in the app header, so a sideload
+      # can always be confirmed against a specific push.
+      - name: Write build info
+        run: |
+          cat > Sources/BLKGLDLyricVideo/BuildInfo.swift << EOF
+          enum BuildInfo {
+              static let commit = "${GITHUB_SHA:0:7}"
+              static let builtAt = "$(date -u +'%Y-%m-%d %H:%M UTC')"
+          }
+          EOF
+          cat Sources/BLKGLDLyricVideo/BuildInfo.swift
+
       - name: Generate Xcode project
         run: xcodegen generate
 
