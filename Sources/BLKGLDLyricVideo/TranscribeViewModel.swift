@@ -47,11 +47,14 @@ final class TranscribeViewModel: ObservableObject {
 
         let startClock = Date()
         do {
-            let options = DecodingOptions(
-                withoutTimestamps: false,
-                temperatureFallbackCount: 0,
-                wordTimestamps: true
-            )
+            // Mutate after default-init instead of using the memberwise initializer —
+            // its exact parameter order isn't documented and guessing it cost two
+            // failed CI builds (temperatureFallbackCount had to precede both
+            // wordTimestamps and withoutTimestamps; the full order is unknown).
+            var options = DecodingOptions()
+            options.withoutTimestamps = false
+            options.temperatureFallbackCount = 0
+            options.wordTimestamps = true
             let results = try await whisperKit.transcribe(audioPath: url.path, decodeOptions: options)
             let words = results.flatMap { $0.segments.flatMap { $0.words ?? [] } }
             let elapsed = Date().timeIntervalSince(startClock)
