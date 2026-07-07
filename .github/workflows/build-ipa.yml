@@ -11,8 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      # Don't hardcode an Xcode version — runner images rotate which versions are
+      # installed. XcodeGen always generates a project in the format of whatever
+      # XcodeGen version brew installs (latest), so we need the newest Xcode on
+      # the runner to be able to read it, not an older pinned one.
+      - name: Select newest available Xcode
+        run: |
+          ls /Applications | grep Xcode
+          LATEST=$(ls -d /Applications/Xcode_*.app | sort -V | tail -n1)
+          echo "Selecting: $LATEST"
+          sudo xcode-select -s "$LATEST/Contents/Developer"
+          xcodebuild -version
 
       - name: Cache XcodeGen (Homebrew)
         uses: actions/cache@v4
