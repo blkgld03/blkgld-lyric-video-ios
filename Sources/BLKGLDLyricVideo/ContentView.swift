@@ -31,7 +31,13 @@ struct ContentView: View {
             }
             .padding(.top, 8)
         }
-        .fileImporter(isPresented: $showPicker, allowedContentTypes: [.audio]) { result in
+        .fileImporter(
+            isPresented: $showPicker,
+            // `.audio` alone can be too strict in the Files picker for some real-world
+            // files (greys them out even when the format is standard) — list common
+            // audio UTTypes explicitly, plus `.audio` as a catch-all.
+            allowedContentTypes: [.audio, .mp3, .wav, .aiff, .mpeg4Audio]
+        ) { result in
             switch result {
             case .success(let url):
                 if url.startAccessingSecurityScopedResource() {
