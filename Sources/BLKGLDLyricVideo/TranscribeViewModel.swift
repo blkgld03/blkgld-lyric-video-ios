@@ -48,9 +48,9 @@ final class TranscribeViewModel: ObservableObject {
         let startClock = Date()
         do {
             let options = DecodingOptions(
-                wordTimestamps: true,
                 withoutTimestamps: false,
-                temperatureFallbackCount: 0
+                temperatureFallbackCount: 0,
+                wordTimestamps: true
             )
             let results = try await whisperKit.transcribe(audioPath: url.path, decodeOptions: options)
             let words = results.flatMap { $0.segments.flatMap { $0.words ?? [] } }
